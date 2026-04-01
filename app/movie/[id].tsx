@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  Pressable
+  Pressable,
+  ScrollView
 } from 'react-native';
 import { api } from '../../src/api/tmdb';
 
@@ -36,13 +37,9 @@ export default function MovieDetailsScreen() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Buscar detalhes do filme
-        const movieResponse = await api.get(`/movie/${id}`);
-        setMovie(movieResponse.data);
-
-        // Buscar atores (cast)
-        const creditsResponse = await api.get(`/movie/${id}/credits`);
-        setActors(creditsResponse.data.cast); // ✅ CORRETO
+        const [movieRes, creditsRes] = await Promise.all([api.get(`/movie/${id}`),api.get(`/movie/${id}/credits`)]);
+        setMovie(movieRes.data);              
+        setActors(creditsRes.data.cast);         
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
@@ -54,7 +51,7 @@ export default function MovieDetailsScreen() {
   }, [id]);
 
   const renderActorItem = ({ item }: { item: Actor }) => (
-    <Link href={`/people/${item.id}`} asChild>
+    <Link href={`/actor/${item.id}`} asChild>
       <Pressable style={styles.card}>
         {item.profile_path ? (
           <Image
@@ -123,6 +120,7 @@ export default function MovieDetailsScreen() {
             </Text>
 
             <Text style={styles.sectionTitle}>Elenco</Text>
+           
           </View>
         </>
       }
